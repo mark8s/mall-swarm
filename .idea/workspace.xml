@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -25,13 +28,34 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0c7448a5-eb66-410c-b6ba-786f51113ae8" name="Default Changelist" comment="" />
+    <list default="true" id="0c7448a5-eb66-410c-b6ba-786f51113ae8" name="Default Changelist" comment="add skywalking">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/create-user.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/grant-admin.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/mall-admin-web-dashboard.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/nacos.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/start-mall-admin-web.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/manifests/infra.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/manifests/normal.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/manifests/skywalking.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mall-admin-web/config/dev.env.js" beforeDir="false" afterPath="$PROJECT_DIR$/mall-admin-web/config/dev.env.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mall-admin-web/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mall-admin-web/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mall-admin-web/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mall-admin-web/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="21fOnqeOuq5BIXsS7IWFOwD1HwZ" />
@@ -41,17 +65,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/mall-swarm" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
-    <property name="settings.editor.selected.configurable" value="yiiguxing.plugin.translate" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="F:\workspace\github.com\mall-swarm-istio\mall-swarm\document\k8s\frontend" />
@@ -105,24 +127,9 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
-  <component name="WindowStateProjectService">
-    <state x="740" y="271" key="FileChooserDialogImpl" timestamp="1638496575986">
-      <screen x="0" y="0" width="1920" height="1032" />
-    </state>
-    <state x="740" y="271" key="FileChooserDialogImpl/0.0.1920.1032@0.0.1920.1032" timestamp="1638496575986" />
-    <state x="461" y="160" key="SettingsEditor" timestamp="1638343932554">
-      <screen x="0" y="0" width="1920" height="1032" />
-    </state>
-    <state x="461" y="160" key="SettingsEditor/0.0.1920.1032@0.0.1920.1032" timestamp="1638343932554" />
-    <state x="552" y="249" key="Vcs.Push.Dialog.v2" timestamp="1638445539919">
-      <screen x="0" y="0" width="1920" height="1032" />
-    </state>
-    <state x="552" y="249" key="Vcs.Push.Dialog.v2/0.0.1920.1032@0.0.1920.1032" timestamp="1638445539919" />
-    <state x="753" y="429" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1638443742778">
-      <screen x="0" y="0" width="1920" height="1032" />
-    </state>
-    <state x="753" y="429" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1920.1032@0.0.1920.1032" timestamp="1638443742778" />
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add skywalking" />
+    <option name="LAST_COMMIT_MESSAGE" value="add skywalking" />
   </component>
 </project>

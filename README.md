@@ -1,79 +1,94 @@
-# mall-swarm-istio
+# mall-swarm
 
-mall-swarm改造版，用于适配k8s和istio的测试使用，仓库直接包含了mall-swarm库和mall-admin-web库，这个分支是用于测试solarmesh对nacos的支持
+## 普通部署
 
-## 改动
-
-mall-swarm:
-
-1. 为了方便测试，所有k8s的yaml统一去掉了挂载，改为deployment，并添加了所有中间件的yaml，可以一起apply到集群里面
-
-mall-admin-web:
-
-改动了BASE_API，需要使其指向集群内的gateway服务
-
-## 使用方法
-
-### 前置条件
-
-* k8s集群
-* 安装istio
-
-### 创建namespace
-
-```bash
-kubectl create ns mall
+执行：
+```shell
+kubectl apply -f ./manifests/infra.yaml
+kubectl apply -f ./manifests/normal.yaml
 ```
 
-### 部署基础设施
+安装完后：
+```shell
+kubectl get deploy -n skywalking 
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+elasticsearch                1/1     1            1           3h4m
+mall-admin                   1/1     1            1           3h4m
+mall-auth                    1/1     1            1           3h4m
+mall-gateway                 1/1     1            1           3h4m
+mall-monitor                 1/1     1            1           3h4m
+mall-mysql                   1/1     1            1           3h4m
+mall-portal                  1/1     1            1           3h4m
+mall-search                  1/1     1            1           3h4m
+mongodb                      1/1     1            1           3h4m
+nacos                        1/1     1            1           3h4m
+rabbitmq                     1/1     1            1           3h4m
+redis                        1/1     1            1           3h4m
 
-```bash
-kubectl apply -n mall -f mall-swarm/document/k8s/infra
+kubectl get svc -n skywalking 
+NAME                         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                           AGE
+elasticsearch                ClusterIP   10.233.22.204   <none>        9200/TCP,9300/TCP                 3h7m
+mall-admin                   NodePort    10.233.4.47     <none>        8080:23785/TCP                    3h7m
+mall-auth                    NodePort    10.233.35.9     <none>        8401:402/TCP                      3h7m
+mall-gateway                 NodePort    10.233.58.24    <none>        8201:9197/TCP                     3h7m
+mall-monitor                 ClusterIP   10.233.20.55    <none>        8101/TCP                          3h7m
+mall-mysql                   NodePort    10.233.26.137   <none>        3306:28561/TCP                    3h7m
+mall-portal                  ClusterIP   10.233.41.156   <none>        8085/TCP                          3h7m
+mall-search                  NodePort    10.233.4.77     <none>        8081:23745/TCP                    3h7m
+mongodb                      ClusterIP   10.233.53.205   <none>        27017/TCP                         3h7m
+nacos                        NodePort    10.233.5.43     <none>        8848:17625/TCP                    3h7m
+rabbitmq                     ClusterIP   10.233.27.159   <none>        15672/TCP,5672/TCP                3h7m
+redis                        ClusterIP   10.233.20.145   <none>        6379/TCP                          3h7m
 ```
 
-目前项目的yaml不包含nacos本身，可以使用虚拟机上的nacos也可以按照nacos官方简单部署文档部署到集群中
+nacos:
 
-clone nacos
+![](./images/nacos.png)
+
+1. 导入sql。连接mysql，设置数据库为 mall， 导入 mall-swarm/document/sql 下面的sql文件
+
+2. 配置用户
+
+访问 mall-gateway:/doc.html ，创建用户。
+
+![](./images/create-user.png)
+
+3. 为用户赋予管理员权限
+
+改动ums_admin_permission_relation 表，给这个账号赋予一下超管权限
+
+![](./images/grant-admin.png)
+
+4. 本地启动mall-admin-web
+
+修改 config/dev.env.js 中的地址为 gateway的实际地址
+
+![](./images/start-mall-admin-web.png)
+
+执行以下命令启动：
 
 ```shell
-git clone https://github.com/nacos-group/nacos-k8s.git
+npm install node-sass@latest --sass-binary-site=https://npm.taobao.org/mirrors/node-sass
 ```
-
-> 如果你使用简单方式快速启动,请注意这是没有使用持久化卷的,可能存在数据丢失风险:
 
 ```shell
-cd nacos-k8s
-chmod +x quick-startup.sh
-./quick-startup.sh
+npm run dev
 ```
 
-### 导入sql
+相关issue：https://github.com/macrozheng/mall-admin-web/issues/134 
 
-连接集群 nodeport 33066端口上的mysql，导入 mall-swarm/document/sql 下面的sql文件
+启动成功后就可以本地调试了。
 
-### 部署mall-swarm
+![](./images/mall-admin-web-dashboard.png)
 
-```bash
-kubectl create ns mall
-kubectl apply -n mall -f mall-swarm/document/k8s/service
+
+## skywalking 注入部署
+
+```shell
+kubectl apply -f ./manifests/infra.yaml
+kubectl apply -f ./manifests/skywalking.yaml
 ```
 
-### 接入sidecar
+其他步骤和上述一致：
+![](./images/skywalking.png)
 
-将 `gateway`，`mall-admin`，`mall-auth`，`mall-portal`，`mall-monitor`，`mall-search` 服务接入sidecar
-
-### 注册
-
-访问 http://{cluster-master-ip}:30201/doc.html
-
-选择用户注册接口，注册一个账号并赋予权限
-
-> ps: 也可以改动一下数据库 ums_admin 表，加上一个用户记录，改动ums_admin_permission_relation 表，给这个账号赋予一下超管权限
-
-### 部署mall-admin-web
-
-mall-admin-web推荐本地启动，config/dev.env.js配置到集群内的gateway服务
-
-访问mall-admin-web的页面即可
-
-![mall-admin-web](images/mall-admin-web.png)

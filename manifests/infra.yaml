@@ -1,0 +1,351 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nacos
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nacos
+    spec:
+      containers:
+        - name: nacos
+          image: nacos/nacos-server:v2.2.0
+          ports:
+            - name: http-8848
+              containerPort: 8848
+          env:
+            - name: MODE
+              value: standalone
+            - name: PREFER_HOST_MODE
+              value: hostname
+  selector:
+    matchLabels:
+      app: nacos
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacos
+spec:
+  selector:
+    app: nacos
+  ports:
+    - name: web
+      port: 8848
+      targetPort: 8848
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: elasticsearch:7.9.2
+          ports:
+            - containerPort: 9200
+              name: http-9200
+            - containerPort: 9300
+              name: http-9300
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: http.cors.enabled
+              value: "true"
+            - name: http.cors.allow-origin
+              value: "*"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  ports:
+    - port: 9200
+      name: http-9200
+    - port: 9300
+      name: http-9300
+  selector:
+    app: elasticsearch
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:4.2.1
+          ports:
+            - containerPort: 27017
+              name: mongo-27017
+              protocol: TCP
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: mongodb
+  name: mongodb
+spec:
+  ports:
+    - name: mongo-27017
+      port: 27017
+      targetPort: 27017
+  selector:
+    app: mongodb
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-mysql
+  labels:
+    app: mall-mysql
+spec:
+  selector:
+    matchLabels:
+      app: mall-mysql
+  template:
+    metadata:
+      labels:
+        app: mall-mysql
+    spec:
+      containers:
+        - image: mysql:5.7
+          name: mall-mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+          ports:
+            - containerPort: 3306
+              name: mysql-3306
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-mysql
+  labels:
+    app: mall-mysql
+spec:
+  ports:
+    - port: 3306
+      protocol: TCP
+      targetPort: 3306
+      name: mysql-3306
+  selector:
+    app: mall-mysql
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - image: rabbitmq:3.7.15-management
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: guest
+            - name: RABBITMQ_DEFAULT_PASS
+              value: guest
+          name: rabbitmq
+          ports:
+            - containerPort: 15672
+              name: rabbit15672
+              protocol: TCP
+            - containerPort: 5672
+              name: rabbit5672
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+spec:
+  ports:
+    - name: tcp-15672
+      port: 15672
+      protocol: TCP
+      targetPort: 15672
+    - name: tcp-5672
+      port: 5672
+      protocol: TCP
+      targetPort: 5672
+  selector:
+    app: rabbitmq
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis
+          ports:
+            - containerPort: 6379
+              name: redis
+              protocol: TCP
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  ports:
+    - name: redis-6379
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+  selector:
+    app: redis
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oap
+  template:
+    metadata:
+      labels:
+        app: oap
+    spec:
+      containers:
+        - image: apache/skywalking-oap-server:9.3.0
+          imagePullPolicy: IfNotPresent
+          name: oap
+          ports:
+            - containerPort: 11800
+              name: grpc
+              protocol: TCP
+            - containerPort: 12800
+              name: rest
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oap
+spec:
+  ports:
+    - name: rest
+      port: 12800
+      protocol: TCP
+      targetPort: 12800
+    - name: grpc
+      port: 11800
+      protocol: TCP
+      targetPort: 11800
+  selector:
+    app: oap
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui
+  template:
+    metadata:
+      labels:
+        app: ui
+    spec:
+      containers:
+        - env:
+            - name: SW_OAP_ADDRESS
+              value: http://oap.skywalking:12800
+          image: apache/skywalking-ui:9.3.0
+          imagePullPolicy: IfNotPresent
+          name: ui
+          ports:
+            - containerPort: 8080
+              name: page
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+spec:
+  ports:
+    - name: page
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: ui
+  type: NodePort
+

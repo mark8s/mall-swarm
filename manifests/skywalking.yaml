@@ -1,0 +1,542 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-admin
+  labels:
+    app: mall-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-admin
+  template:
+    metadata:
+      labels:
+        app: mall-admin
+    spec:
+      initContainers:
+        - image: apache/skywalking-java-agent:8.15.0-java8
+          name: skywalking-sidecar
+          command: [ "sh" ]
+          args: [ "-c","mkdir -p /opt/skywalking/agent && cp -rf /skywalking/agent/* /opt/skywalking/agent" ]
+          volumeMounts:
+            - name: sw-agent
+              mountPath: /opt/skywalking/agent
+      containers:
+        - name: mall-admin
+          image: macrodocker/mall-admin:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8080
+          env:
+            - name: spring.profiles.active
+              value: prod
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR
+              value: http://nacos:8848
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVERADDR
+              value: http://nacos:8848
+            - name: spring_datasource_url
+              value: jdbc:mysql://mall-mysql:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+            - name: spring_elasticsearch_rest_uris
+              value: elasticsearch:9200
+            - name: spring_redis_host
+              value: redis
+            - name: spring_rabbitmq_host
+              value: rabbitmq
+            - name: spring_rabbitmq_username
+              value: guest
+            - name: spring_rabbitmq_password
+              value: guest
+            - name: HOST_MALL-AUTH
+              value: http://mall-auth:8401
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: mall-admin
+            - name: SW_AGENT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SW_AGENT_CLUSTER
+              value: "8"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "oap.skywalking.svc:11800"
+            - name: SW_AGENT_INSTANCE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /opt/skywalking/agent
+              name: sw-agent
+      volumes:
+        - name: sw-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-admin
+  labels:
+    app: mall-admin
+spec:
+  type: NodePort
+  selector:
+    app: mall-admin
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-auth
+  labels:
+    app: mall-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-auth
+  template:
+    metadata:
+      labels:
+        app: mall-auth
+    spec:
+      initContainers:
+        - image: apache/skywalking-java-agent:8.15.0-java8
+          name: skywalking-sidecar
+          command: [ "sh" ]
+          args: [ "-c","mkdir -p /opt/skywalking/agent && cp -rf /skywalking/agent/* /opt/skywalking/agent" ]
+          volumeMounts:
+            - name: sw-agent
+              mountPath: /opt/skywalking/agent
+      containers:
+        - name: mall-auth
+          image: macrodocker/mall-auth:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8401
+          env:
+            - name: spring.profiles.active
+              value: prod
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR
+              value: http://nacos:8848
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVERADDR
+              value: http://nacos:8848
+            - name: spring_datasource_url
+              value: jdbc:mysql://mall-mysql:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+            - name: spring_elasticsearch_rest_uris
+              value: elasticsearch:9200
+            - name: spring_redis_host
+              value: redis
+            - name: spring_rabbitmq_host
+              value: rabbitmq
+            - name: spring_rabbitmq_username
+              value: guest
+            - name: spring_rabbitmq_password
+              value: guest
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: mall-auth
+            - name: SW_AGENT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SW_AGENT_CLUSTER
+              value: "8"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "oap.skywalking.svc:11800"
+            - name: SW_AGENT_INSTANCE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /opt/skywalking/agent
+              name: sw-agent
+      volumes:
+        - name: sw-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-auth
+  labels:
+    app: mall-auth
+spec:
+  type: NodePort
+  selector:
+    app: mall-auth
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8401
+      targetPort: 8401
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-gateway
+  labels:
+    app: mall-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-gateway
+  template:
+    metadata:
+      labels:
+        app: mall-gateway
+    spec:
+      initContainers:
+        - image: apache/skywalking-java-agent:8.15.0-java8
+          name: skywalking-sidecar
+          command: [ "sh" ]
+          args: [ "-c","mkdir -p /opt/skywalking/agent && cp -rf /skywalking/agent/* /opt/skywalking/agent" ]
+          volumeMounts:
+            - name: sw-agent
+              mountPath: /opt/skywalking/agent
+      containers:
+        - name: mall-gateway
+          image: macrodocker/mall-gateway:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8201
+          env:
+            - name: spring.profiles.active
+              value: prod
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR
+              value: http://nacos:8848
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVERADDR
+              value: http://nacos:8848
+            - name: spring_datasource_url
+              value: jdbc:mysql://mall-mysql:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+            - name: spring_elasticsearch_rest_uris
+              value: elasticsearch:9200
+            - name: spring_redis_host
+              value: redis
+            - name: spring_rabbitmq_host
+              value: rabbitmq
+            - name: spring_rabbitmq_username
+              value: guest
+            - name: spring_rabbitmq_password
+              value: guest
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: mall-gateway
+            - name: SW_AGENT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SW_AGENT_CLUSTER
+              value: "8"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "oap.skywalking.svc:11800"
+            - name: SW_AGENT_INSTANCE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /opt/skywalking/agent
+              name: sw-agent
+      volumes:
+        - name: sw-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-gateway
+  labels:
+    app: mall-gateway
+spec:
+  type: NodePort
+  selector:
+    app: mall-gateway
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8201
+      targetPort: 8201
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-monitor
+  labels:
+    app: mall-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-monitor
+  template:
+    metadata:
+      labels:
+        app: mall-monitor
+    spec:
+      initContainers:
+        - image: apache/skywalking-java-agent:8.15.0-java8
+          name: skywalking-sidecar
+          command: [ "sh" ]
+          args: [ "-c","mkdir -p /opt/skywalking/agent && cp -rf /skywalking/agent/* /opt/skywalking/agent" ]
+          volumeMounts:
+            - name: sw-agent
+              mountPath: /opt/skywalking/agent
+      containers:
+        - name: mall-monitor
+          image: macrodocker/mall-monitor:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8101
+          env:
+            - name: spring.profiles.active
+              value: prod
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR
+              value: http://nacos:8848
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVERADDR
+              value: http://nacos:8848
+            - name: spring_datasource_url
+              value: jdbc:mysql://mall-mysql:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+            - name: spring_elasticsearch_rest_uris
+              value: elasticsearch:9200
+            - name: spring_redis_host
+              value: redis
+            - name: spring_rabbitmq_host
+              value: rabbitmq
+            - name: spring_rabbitmq_username
+              value: guest
+            - name: spring_rabbitmq_password
+              value: guest
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: mall-monitor
+            - name: SW_AGENT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SW_AGENT_CLUSTER
+              value: "8"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "oap.skywalking.svc:11800"
+            - name: SW_AGENT_INSTANCE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+          - mountPath: /opt/skywalking/agent
+            name: sw-agent
+      volumes:
+      - name: sw-agent
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-monitor
+  labels:
+    app: mall-monitor
+spec:
+  type: ClusterIP
+  selector:
+    app: mall-monitor
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8101
+      targetPort: 8101
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-portal
+  labels:
+    app: mall-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-portal
+  template:
+    metadata:
+      labels:
+        app: mall-portal
+    spec:
+      initContainers:
+        - image: apache/skywalking-java-agent:8.15.0-java8
+          name: skywalking-sidecar
+          command: [ "sh" ]
+          args: [ "-c","mkdir -p /opt/skywalking/agent && cp -rf /skywalking/agent/* /opt/skywalking/agent" ]
+          volumeMounts:
+            - name: sw-agent
+              mountPath: /opt/skywalking/agent
+      containers:
+        - name: mall-portal
+          image: macrodocker/mall-portal:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8085
+          env:
+            - name: spring.profiles.active
+              value: prod
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR
+              value: http://nacos:8848
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVERADDR
+              value: http://nacos:8848
+            - name: spring_datasource_url
+              value: jdbc:mysql://mall-mysql:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+            - name: spring_elasticsearch_rest_uris
+              value: elasticsearch:9200
+            - name: spring_redis_host
+              value: redis
+            - name: spring_rabbitmq_host
+              value: rabbitmq
+            - name: spring_rabbitmq_username
+              value: guest
+            - name: spring_rabbitmq_password
+              value: guest
+            - name: spring_rabbitmq_virtual-host
+              value: /
+            - name: spring_data_mongodb_host
+              value: mongodb
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: mall-portal
+            - name: SW_AGENT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SW_AGENT_CLUSTER
+              value: "8"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "oap.skywalking.svc:11800"
+            - name: SW_AGENT_INSTANCE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /opt/skywalking/agent
+              name: sw-agent
+      volumes:
+        - name: sw-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-portal
+  labels:
+    app: mall-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: mall-portal
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8085
+      targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-search
+  labels:
+    app: mall-search
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-search
+  template:
+    metadata:
+      labels:
+        app: mall-search
+    spec:
+      initContainers:
+        - image: apache/skywalking-java-agent:8.15.0-java8
+          name: skywalking-sidecar
+          command: [ "sh" ]
+          args: [ "-c","mkdir -p /opt/skywalking/agent && cp -rf /skywalking/agent/* /opt/skywalking/agent" ]
+          volumeMounts:
+            - name: sw-agent
+              mountPath: /opt/skywalking/agent
+      containers:
+        - name: mall-search
+          image: macrodocker/mall-search:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8081
+          env:
+            - name: spring.profiles.active
+              value: prod
+            - name: TZ
+              value: Asia/Shanghai
+            - name: SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR
+              value: http://nacos:8848
+            - name: SPRING_CLOUD_NACOS_CONFIG_SERVERADDR
+              value: http://nacos:8848
+            - name: spring_datasource_url
+              value: jdbc:mysql://mall-mysql:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+            - name: spring_elasticsearch_rest_uris
+              value: elasticsearch:9200
+            - name: spring_redis_host
+              value: redis
+            - name: spring_rabbitmq_host
+              value: rabbitmq
+            - name: spring_rabbitmq_username
+              value: guest
+            - name: spring_rabbitmq_password
+              value: guest
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/opt/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: mall-search
+            - name: SW_AGENT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SW_AGENT_CLUSTER
+              value: "8"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "oap.skywalking.svc:11800"
+            - name: SW_AGENT_INSTANCE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - mountPath: /opt/skywalking/agent
+              name: sw-agent
+      volumes:
+        - name: sw-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-search
+  labels:
+    app: mall-search
+spec:
+  type: NodePort
+  selector:
+    app: mall-search
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8081
+      targetPort: 8081
